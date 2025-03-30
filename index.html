@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCRIPTER | Cyber Security Professional</title>
+    <style>
+        :root {
+            --primary-color: #0f0;
+            --primary-dim: #0f07;
+            --secondary-color: #00ffff;
+            --background-dark: #0a0a0a;
+            --background-darker: #050505;
+            --text-color: #e0e0e0;
+            --accent-color: #ff00ff;
+            --box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+            --glitch-shadow: 2px 2px rgba(255, 0, 255, 0.7), -2px -2px rgba(0, 255, 255, 0.7);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+        
+        body {
+            color: var(--text-color);
+            line-height: 1.6;
+            background-color: var(--background-dark);
+            background-image: 
+                linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            overflow-x: hidden;
+        }
+        
+        .terminal-cursor {
+            display: inline-block;
+            width: 10px;
+            height: 20px;
+            background-color: var(--primary-color);
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+            margin-left: 5px;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        @keyframes scanline {
+            0% { transform: translateY(-100vh); }
+            100% { transform: translateY(100vh); }
+        }
+        
+        @keyframes glitch {
+            0% { text-shadow: var(--glitch-shadow); }
+            20% { text-shadow: none; }
+            40% { text-shadow: var(--glitch-shadow); }
+            60% { text-shadow: none; }
+            80% { text-shadow: var(--glitch-shadow); }
+            100% { text-shadow: none; }
+        }
+        
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(to bottom, 
+                rgba(0, 255, 0, 0), 
+                rgba(0, 255, 0, 0.1), 
+                rgba(0, 255, 0, 0));
+            z-index: 999;
+            opacity: 0.5;
+            pointer-events: none;
+            animation: scanline 8s linear infinite;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+        }
+        
+        .noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.05;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        header {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .logo-container {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        
+        .profile-image {
+            width: 180px;
+            height: 180px;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+        
+        .profile-image:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(to bottom, transparent, var(--background-dark)),
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(0, 255, 0, 0.15) 0px,
+                    rgba(0, 255, 0, 0.15) 1px,
+                    transparent 1px,
+                    transparent 2px
+                );
+            z-index: 1;
+        }
+        
+        .profile-image:after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--background-darker);
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230f0' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            z-index: 0;
+        }
+        
+        .profile-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .profile-text span {
+            display: block;
+            font-family: 'Courier New', monospace;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+        
+        .title-container {
+            text-align: center;
+            position: relative;
+        }
+        
+        .title {
+            font-size: 5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 15px;
+            color: var(--text-color);
+            text-shadow: 0 0 10px var(--primary-color);
+            margin-bottom: 0.5rem;
+            animation: glitch 5s infinite;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+            letter-spacing: 5px;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+        
+        .terminal-section {
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--primary-color);
+            border-radius: 5px;
+            padding: 2rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .terminal-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background-color: var(--background-darker);
+            border-bottom: 1px solid var(--primary-color);
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+        }
+        
+        .terminal-title {
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            margin-left: 10px;
+        }
+        
+        .terminal-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .terminal-button:nth-child(1) { background-color: #ff5f56; }
+        .terminal-button:nth-child(2) { background-color: #ffbd2e; }
+        .terminal-button:nth-child(3) { background-color: #27c93f; }
+        
+        .terminal-content {
+            margin-top: 30px;
+            font-family: 'Courier New', monospace;
+            color: var(--text-color);
+        }
+        
+        .command-prompt {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .command-prompt:before {
+            content: "root@server:~$ ";
+            color: var(--secondary-color);
+        }
+        
+        .command-output {
+            white-space: pre-line;
+            margin-bottom: 1.5rem;
+            line-height: 1.4;
+        }
+        
+        .command-output p {
+            margin-bottom: 1rem;
+        }
+        
+        .command-output ul {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .command-output li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .typing {
+            border-right: 2px solid var(--primary-color);
+            white-space: nowrap;
+            overflow: hidden;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: var(--primary-color) }
+        }
+        
+        .highlight {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        
+        .danger {
+            color: #ff0033;
+        }
+        
+        .warning {
+            color: #ffcc00;
+        }
+        
+        .success {
+            color: var(--primary-color);
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .grid-item {
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--primary-dim);
+            border-radius: 5px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .grid-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 255, 0, 0.2);
+            border-color: var(--primary-color);
+        }
+        
+        .grid-item:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+        }
+        
+        .grid-item h3 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .grid-item h3:before {
+            content: "> ";
+            color: var(--primary-color);
+            margin-right: 0.5rem;
+        }
+        
+        .matrix-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.05;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid var(--primary-dim);
+            margin-top: 3rem;
+        }
+        
+        footer p {
+            color: var(--text-color);
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+        
+        .hacker-signature {
+            font-family: 'Courier New', monospace;
+            color: var(--primary-color);
+            letter-spacing: 2px;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 3rem;
+                letter-spacing: 10px;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+                letter-spacing: 3px;
+            }
+            
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .title {
+                font-size: 2rem;
+                letter-spacing: 5px;
+            }
+            
+            .profile-image {
+                width: 140px;
+                height: 140px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="scanline"></div>
+    <div class="noise"></div>
+    
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <div class="profile-image">
+                    <div class="profile-text">
+                        <span>{S}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="title-container">
+                <h1 class="title">SCRIPTER</h1>
+                <p class="subtitle">CYBER SECURITY SPECIALIST</p>
+            </div>
+        </header>
+        
+        <section class="terminal-section">
+            <div class="terminal-header">
+                <div class="terminal-buttons">
+                    <div class="terminal-button"></div>
+                    <div class="terminal-button"></div>
+                    <div class="terminal-button"></div>
+                </div>
+                <div class="terminal-title">user@system:~/about_me</div>
+            </div>
+            
+            <div class="terminal-content">
+                <div class="command-prompt">cat about.txt</div>
+                <div class="command-output">
+                    <p>I am <span class="highlight">Scripter</span>, a cyber security specialist with expertise in penetration testing, vulnerability assessment, and security infrastructure development.</p>
+                    
+                    <p>With a background in offensive security and a passion for finding vulnerabilities before the bad actors do, I specialize in:</p>
+                    
+                    <ul>
+                        <li><span class="highlight">Penetration Testing</span> - Identifying security gaps through systematic probing and ethical hacking</li>
+                        <li><span class="highlight">Exploit Development</span> - Creating targeted tools to demonstrate vulnerabilities</li>
+                        <li><span class="highlight">Security Automation</span> - Building custom scripts and tools to enhance defensive capabilities</li>
+                        <li><span class="highlight">Threat Hunting</span> - Proactively searching for indicators of compromise within networks</li>
+                    </ul>
+                    
+                    <p>Operating in the shadows of the digital world, I leverage my expertise to strengthen security postures and protect critical assets from emerging threats.</p>
+                </div>
+                
+                <div class="command-prompt">./skills.sh</div>
+                <div class="command-output">
+                    <p><span class="success">[+]</span> Ethical Hacking & Penetration Testing</p>
+                    <p><span class="success">[+]</span> Custom Exploit Development</p>
+                    <p><span class="success">[+]</span> Security Infrastructure Design</p>
+                    <p><span class="success">[+]</span> Python, Bash, PowerShell Scripting</p>
+                    <p><span class="success">[+]</span> Network & Web Application Security</p>
+                    <p><span class="success">[+]</span> Malware Analysis & Reverse Engineering</p>
+                </div>
+                
+                <div class="command-prompt">echo $CONTACT</div>
+                <div class="command-output">
+                    <p><span class="highlight">secure-contact@scripter.io</span></p>
+                </div>
+                
+                <div class="command-prompt interactive">
+                    <span class="prompt-text">root@server:~$</span>
+                </div>
+            </div>
+            
+            <style>
+                .command-input {
+                    background: transparent;
+                    border: none;
+                    outline: none;
+                    color: #0f0;
+                    font-family: 'Courier New', monospace;
+                    font-size: 1rem;
+                    caret-color: #0f0;
+                }
+                
+                .interactive:before {
+                    content: "";
+                }
+                
+                .prompt-text {
+                    color: #00ffff;
+                    margin-right: 8px;
+                }
+                
+                .terminal-content {
+                    height: auto;
+                    min-height: 500px;
+                    overflow-y: visible;
+                    display: flex;
+                    flex-direction: column;
+                }
+                
+                .terminal-section {
+                    display: flex;
+                    flex-direction: column;
+                }
+            </style>
+        </section>
+    </div>
+    
+    <canvas id="matrix" class="matrix-rain"></canvas>
+    
+    <footer>
+        <p class="hacker-signature">[SCRIPTER] &lt;/&gt; Secure. Analyze. Defend.</p>
+        <p>&copy; 2025 | All rights reserved</p>
+    </footer>
+    
+    <script>
+        // Matrix rain effect
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('matrix');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const characters = "01";
+            const font_size = 14;
+            const columns = canvas.width / font_size;
+            
+            const drops = [];
+            for (let i = 0; i < columns; i++) {
+                drops[i] = 1;
+            }
+            
+            function draw() {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = "#0f0";
+                ctx.font = font_size + "px monospace";
+                
+                for (let i = 0; i < drops.length; i++) {
+                    const text = characters.charAt(Math.floor(Math.random() * characters.length));
+                    ctx.fillText(text, i * font_size, drops[i] * font_size);
+                    
+                    if (drops[i] * font_size > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    
+                    drops[i]++;
+                }
+            }
+            
+            setInterval(draw, 35);
+            
+            window.addEventListener('resize', function() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+            
+            // Interactive terminal functionality
+            const terminalContent = document.querySelector('.terminal-content');
+            const commandInput = document.createElement('input');
+            commandInput.type = 'text';
+            commandInput.className = 'command-input';
+            commandInput.style.background = 'transparent';
+            commandInput.style.border = 'none';
+            commandInput.style.outline = 'none';
+            commandInput.style.color = '#0f0';
+            commandInput.style.fontFamily = 'Courier New, monospace';
+            commandInput.style.width = 'calc(100% - 120px)';
+            
+            // Create interactive prompt
+            const interactivePrompt = document.createElement('div');
+            interactivePrompt.className = 'command-prompt interactive';
+            interactivePrompt.innerHTML = '<span class="prompt-text">root@server:~$</span> ';
+            interactivePrompt.appendChild(commandInput);
+            
+            // Replace the cursor element with our interactive prompt
+            const cursorPrompt = document.querySelector('.command-prompt:last-child');
+            terminalContent.replaceChild(interactivePrompt, cursorPrompt);
+            
+            // Focus the input when clicking anywhere in the terminal
+            terminalContent.addEventListener('click', function() {
+                commandInput.focus();
+            });
+            
+            // Handle command execution
+            commandInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const command = commandInput.value.trim();
+                    
+                    // Create command element
+                    const cmdElement = document.createElement('div');
+                    cmdElement.className = 'command-prompt';
+                    cmdElement.textContent = command;
+                    cmdElement.style.marginBottom = '0.5rem';
+                    
+                    // Add the prefix to the displayed command
+                    const displayedCmd = document.createElement('div');
+                    displayedCmd.className = 'command-display';
+                    displayedCmd.innerHTML = '<span class="prompt-text">root@server:~$</span> ' + command;
+                    
+                    // Create output element
+                    const outputElement = document.createElement('div');
+                    outputElement.className = 'command-output';
+                    
+                    // Process commands
+                    if (command === 'whoami') {
+                        outputElement.innerHTML = '<span class="highlight">scripter</span>';
+                    } else if (command === 'ls') {
+                        outputElement.innerHTML = '<span style="color: #0f0;">about.txt</span>  <span style="color: #0f0;">skills.sh</span>';
+                    } else if (command === 'clear' || command === 'cls') {
+                        // Clear all previous commands and outputs
+                        const elements = terminalContent.querySelectorAll('.command-display, .command-output');
+                        elements.forEach(el => {
+                            terminalContent.removeChild(el);
+                        });
+                        commandInput.value = '';
+                        return;
+                    } else if (command === 'help') {
+                        outputElement.innerHTML = 'Available commands:<br>' +
+                            '- <span class="highlight">whoami</span>: Display current user<br>' +
+                            '- <span class="highlight">ls</span>: List directory contents<br>' +
+                            '- <span class="highlight">cat about.txt</span>: Display about me<br>' +
+                            '- <span class="highlight">./skills.sh</span>: Run skills script<br>' +
+                            '- <span class="highlight">clear</span>: Clear the terminal<br>' +
+                            '- <span class="highlight">help</span>: Display this help message';
+                    } else if (command === 'cat about.txt') {
+                        outputElement.innerHTML = `<p>I am <span class="highlight">Scripter</span>, a cyber security specialist with expertise in penetration testing, vulnerability assessment, and security infrastructure development.</p>
+                            
+                            <p>With a background in offensive security and a passion for finding vulnerabilities before the bad actors do, I specialize in:</p>
+                            
+                            <ul>
+                                <li><span class="highlight">Penetration Testing</span> - Identifying security gaps through systematic probing and ethical hacking</li>
+                                <li><span class="highlight">Exploit Development</span> - Creating targeted tools to demonstrate vulnerabilities</li>
+                                <li><span class="highlight">Security Automation</span> - Building custom scripts and tools to enhance defensive capabilities</li>
+                                <li><span class="highlight">Threat Hunting</span> - Proactively searching for indicators of compromise within networks</li>
+                            </ul>
+                            
+                            <p>Operating in the shadows of the digital world, I leverage my expertise to strengthen security postures and protect critical assets from emerging threats.</p>`;
+                    } else if (command === './skills.sh') {
+                        outputElement.innerHTML = `<p><span class="success">[+]</span> Ethical Hacking & Penetration Testing</p>
+                            <p><span class="success">[+]</span> Custom Exploit Development</p>
+                            <p><span class="success">[+]</span> Security Infrastructure Design</p>
+                            <p><span class="success">[+]</span> Python, Bash, PowerShell Scripting</p>
+                            <p><span class="success">[+]</span> Network & Web Application Security</p>
+                            <p><span class="success">[+]</span> Malware Analysis & Reverse Engineering</p>`;
+                    } else if (command === 'echo $CONTACT') {
+                        outputElement.innerHTML = '<p><span class="highlight">secure-contact@scripter.io</span></p>';
+                    } else {
+                        outputElement.innerHTML = `<span class="danger">bash: ${command}: command not found</span>`;
+                    }
+                    
+                    // Add command and output to terminal
+                    terminalContent.insertBefore(displayedCmd, interactivePrompt);
+                    terminalContent.insertBefore(outputElement, interactivePrompt);
+                    
+                    // Clear input and focus
+                    commandInput.value = '';
+                    commandInput.focus();
+                    
+                    // Scroll to bottom
+                    terminalContent.scrollTop = terminalContent.scrollHeight;
+                }
+            });
+            
+            // Initial focus
+            commandInput.focus();
+        });
+    </script>
+</body>
+</html>
